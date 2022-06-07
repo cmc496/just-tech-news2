@@ -1,13 +1,11 @@
 const router = require('express').Router();
-const { fs } = require('fs');
 const sequelize = require('../../config/connection');
-const { Post, User, Vote, Comment } = require('../../models');
+const { Post, User, Comment, Vote } = require('../../models');
 
 // get all users
 router.get('/', (req, res) => {
     console.log('============');
     Post.findAll({
-        order: [['created_at', 'DESC']],
         attributes: [
             'id',
             'post_url',
@@ -97,8 +95,8 @@ router.post('/', (req, res) => {
 // PUT /api/posts/upvote
 router.put('/upvote', (req, res) => {
     // custom static method created in models/Post.js
-    Post.upvote(req.body, { Vote })
-        .then(updatedPostData => res.json(updatedPostData))
+    Post.upvote({ ...req.body, user_id: req.session.user_id }, { Vote, Comment, User })
+        .then(updatedPostData => res.json(updatedVoteData))
         .catch(err => {
             console.log(err);
             res.status(400).json(err);
